@@ -1,0 +1,26 @@
+# Python
+__pycache__
+
+# Environments
+.venv
+.idea
+venv
+
+
+# Python packaging
+*.egg-info/
+*.egg-info/**
+develop-eggs/
+dist/
+build/
+eggs/
+parts/
+bin/
+var/
+sdist/
+
+# Output files
+output/
+*.log
+*.json
+nfc_scan_output.csv
