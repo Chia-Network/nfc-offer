@@ -312,6 +312,11 @@ def handle_scan_uids(args):
                         logging.error("Failed to read tag. Please try again.")
                         continue
 
+                    tag_type = reader.get_tag_type()
+                    if tag_type and reader.ndef_handler.is_locked(tag_type):
+                        logging.warning(f"Tag {uid} is locked - skipping")
+                        continue
+
                     if uid in existing_uids:
                         logging.warning(f"UID already scanned: {uid}")
                         continue
