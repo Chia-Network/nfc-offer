@@ -415,7 +415,7 @@ def create_parser():
     write_parser.add_argument('--nft-id', '-n', required=True,
                               help='NFT ID or 32-byte hash')
     write_parser.add_argument('--offer', '-o', required=True,
-                              help='Offer code (default 12 chars, use --legacy-offer for 5 chars)')
+                              help='Offer code (default 32 chars, use --legacy-offer for 5 chars)')
 
     # Batch Command
     batch_parser = subparsers.add_parser('batch', parents=[offer_args], help='Process NFCs from CSV file')

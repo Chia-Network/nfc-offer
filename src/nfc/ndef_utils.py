@@ -258,17 +258,17 @@ class NFDEFHandler:
 
     def _encode_nft_data(self, nft_data: Dict[str, str]) -> bytes:
         """Encode NFT data into binary format."""
-        # Use 12 bytes for offer field (new default length)
+        # Use 32 bytes for offer field (new default length)
         version = nft_data['version'].encode().ljust(5, b'\x00')
         nft_id = nft_data['nft_id'].encode().ljust(32, b'\x00')
-        offer = nft_data['offer'].encode().ljust(12, b'\x00')
+        offer = nft_data['offer'].encode().ljust(32, b'\x00')
         return version + nft_id + offer
 
     def _decode_nft_data(self, data: bytes) -> Dict[str, str]:
         """Decode binary NFT data."""
         version = data[:5].rstrip(b'\x00').decode()
         nft_id = data[5:67].rstrip(b'\x00').decode()
-        offer = data[67:79].rstrip(b'\x00').decode()
+        offer = data[67:99].rstrip(b'\x00').decode()
         return {
             'version': version,
             'nft_id': nft_id,
