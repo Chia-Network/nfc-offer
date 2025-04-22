@@ -12,9 +12,9 @@ class NFTData:
     offer: str
     
     DEFAULT_VERSION = "DT001"
-    DEFAULT_OFFER_LENGTH = 12  # New default length
+    DEFAULT_OFFER_LENGTH = 64  # New default length
     LEGACY_OFFER_LENGTH = 5    # Original length
-    MAX_OFFER_LENGTH = 12      # Hardcoded to the default length
+    MAX_OFFER_LENGTH = 64      # Hardcoded to the default length
     
     def __post_init__(self):
         """Validate data after initialization."""

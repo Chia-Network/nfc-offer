@@ -151,37 +151,33 @@ class NFDEFHandler:
 
             config = NDEF_CONFIG[tag_type]
 
-            # Create NDEF record with NFT data
-            payload = self._encode_nft_data(nft_data)
-            type_bytes = NDEF_MIME_TYPE.encode()
+            # Create the data string
+            data = f"{nft_data['version']}{nft_data['nft_id']}{nft_data['offer']}"
 
-            # Calculate lengths
-            type_length = len(type_bytes)
-            payload_length = len(payload)
+            # Create language code + data payload
+            payload = bytes([0x02, 0x65, 0x6E]) + data.encode('utf-8')  # 0x02 + "en" + data
 
-            # Create NDEF header
-            flags = 0xD1  # MB=1, ME=1, CF=0, SR=1, IL=0, TNF=001 (MIME)
-
-            # Construct NDEF message
-            ndef_data = bytes([
-                flags,  # NDEF header
-                type_length,  # Type length
-                payload_length,  # Payload length
-            ]) + type_bytes + payload  # Type + Payload
+            # Create NDEF record
+            ndef_record = bytes([
+                0xD1,  # NDEF header (MB=1, ME=1, CF=0, SR=1, IL=0, TNF=0x01)
+                0x01,  # Type length (1 byte for "T")
+                len(payload),  # Payload length
+                ord('T')  # Type ("T" for text record)
+            ]) + payload
 
             # Add TLV wrapper
             tlv_data = bytes([
                 0x03,  # NDEF Message TLV tag
-                len(ndef_data),  # TLV length
-            ]) + ndef_data + bytes([
-                0xFE  # Terminator TLV
+                len(ndef_record),  # TLV length
+                *ndef_record,  # NDEF message
+                0xFE  # TLV terminator
             ])
 
             if len(tlv_data) > config['max_size']:
-                logging.error("NDEF message too large for tag")
+                logging.error(f"NDEF message too large for tag, max size {config['max_size']} got {len(tlv_data)}")
                 return False
 
-            # Write NDEF data
+            # Write data
             current_page = config['data_start']
             for i in range(0, len(tlv_data), 4):
                 chunk = tlv_data[i:i + 4].ljust(4, b'\x00')
@@ -198,7 +194,7 @@ class NFDEFHandler:
             logging.error(f"Failed to write NDEF message: {e}")
             return False
 
-    def read_ndef_message(self) -> Optional[dict]:
+    def read_ndef_message(self) -> Optional[Dict[str, str]]:
         """Read and parse NDEF message from tag."""
         try:
             tag_type = self.reader.get_tag_type()
@@ -208,26 +204,26 @@ class NFDEFHandler:
 
             config = NDEF_CONFIG[tag_type]
 
-            # Read first data page to get TLV header
+            # Read first data page
             data = self.reader.read_page(config['data_start'])
             if not data:
                 logging.debug("Could not read initial data page")
                 return None
 
-            logging.debug(f"Initial data paage: {data.hex()}")
+            logging.debug(f"Initial data page: {data.hex()}")
 
-            # Check for NDEF TLV (0x03)
+            # Check for NDEF TLV tag
             if data[0] != 0x03:
                 logging.debug(f"Invalid NDEF TLV tag: {data[0]}")
                 return None
 
             # Get message length
-            length = data[1]
-            logging.debug(f"NDEF message length: {length}")
+            msg_length = data[1]
+            logging.debug(f"NDEF message length: {msg_length}")
 
             # Read full message
             message = bytearray()
-            pages_needed = (length + 2 + 3) // 4 # Include TLV header and round up
+            pages_needed = (msg_length + 2 + 3) // 4  # Include TLV header and round up
 
             for page in range(config['data_start'], config['data_start'] + pages_needed):
                 page_data = self.reader.read_page(page)
@@ -239,17 +235,28 @@ class NFDEFHandler:
             logging.debug(f"Full message data: {message.hex()}")
 
             # Extract NDEF message (skip TLV header)
-            ndef_message = message[2:length+2]
+            ndef_message = message[2:length + 2]
             logging.debug(f"NDEF message data: {ndef_message.hex()}")
 
-            # Skip NDEF header and type to get to payload
-            # NDEF header is 3 bytes, then type length, then type
-            type_length = ndef_message[1]
-            payload_start = 3 + type_length
-            payload = ndef_message[payload_start:]
-            logging.debug(f"Payload data: {payload.hex()}")
+            # Skip TLV header (2 bytes) and NDEF header (4 bytes)
+            # Then skip language code (3 bytes: 0x02 + "en")
+            payload_start = 9  # 2 (TLV) + 4 (NDEF) + 3 (lang)
+            payload = message[payload_start:msg_length + 2]  # +2 for TLV header
 
-            return self._decode_nft_data(payload)
+            # Convert to text and parse
+            text = payload.decode('utf-8')
+            logging.debug(f"Decoded payload: {text}")
+
+            # Parse the components
+            version = text[:5]  # DT001
+            nft_id = text[5:67]  # 64 characters
+            offer = text[67:]  # remainder
+
+            return {
+                'version': version,
+                'nft_id': nft_id,
+                'offer': offer
+            }
 
         except Exception as e:
             logging.error(f"Error reading NDEF message: {e}")
@@ -258,17 +265,17 @@ class NFDEFHandler:
 
     def _encode_nft_data(self, nft_data: Dict[str, str]) -> bytes:
         """Encode NFT data into binary format."""
-        # Use 12 bytes for offer field (new default length)
+        # Use 32 bytes for offer field (new default length)
         version = nft_data['version'].encode().ljust(5, b'\x00')
         nft_id = nft_data['nft_id'].encode().ljust(32, b'\x00')
-        offer = nft_data['offer'].encode().ljust(12, b'\x00')
+        offer = nft_data['offer'].encode().ljust(32, b'\x00')
         return version + nft_id + offer
 
     def _decode_nft_data(self, data: bytes) -> Dict[str, str]:
         """Decode binary NFT data."""
         version = data[:5].rstrip(b'\x00').decode()
         nft_id = data[5:67].rstrip(b'\x00').decode()
-        offer = data[67:79].rstrip(b'\x00').decode()
+        offer = data[67:99].rstrip(b'\x00').decode()
         return {
             'version': version,
             'nft_id': nft_id,

@@ -312,6 +312,11 @@ def handle_scan_uids(args):
                         logging.error("Failed to read tag. Please try again.")
                         continue
 
+                    tag_type = reader.get_tag_type()
+                    if tag_type and reader.ndef_handler.is_locked(tag_type):
+                        logging.warning(f"Tag {uid} is locked - skipping")
+                        continue
+
                     if uid in existing_uids:
                         logging.warning(f"UID already scanned: {uid}")
                         continue
@@ -415,7 +420,7 @@ def create_parser():
     write_parser.add_argument('--nft-id', '-n', required=True,
                               help='NFT ID or 32-byte hash')
     write_parser.add_argument('--offer', '-o', required=True,
-                              help='Offer code (default 12 chars, use --legacy-offer for 5 chars)')
+                              help='Offer code (default 64 chars, use --legacy-offer for 5 chars)')
 
     # Batch Command
     batch_parser = subparsers.add_parser('batch', parents=[offer_args], help='Process NFCs from CSV file')
