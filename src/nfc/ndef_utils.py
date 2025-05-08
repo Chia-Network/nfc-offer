@@ -263,25 +263,6 @@ class NFDEFHandler:
             logging.debug(f"Exception type: {type(e)}")
             return None
 
-    def _encode_nft_data(self, nft_data: Dict[str, str]) -> bytes:
-        """Encode NFT data into binary format."""
-        # Use 32 bytes for offer field (new default length)
-        version = nft_data['version'].encode().ljust(5, b'\x00')
-        nft_id = nft_data['nft_id'].encode().ljust(32, b'\x00')
-        offer = nft_data['offer'].encode().ljust(32, b'\x00')
-        return version + nft_id + offer
-
-    def _decode_nft_data(self, data: bytes) -> Dict[str, str]:
-        """Decode binary NFT data."""
-        version = data[:5].rstrip(b'\x00').decode()
-        nft_id = data[5:67].rstrip(b'\x00').decode()
-        offer = data[67:99].rstrip(b'\x00').decode()
-        return {
-            'version': version,
-            'nft_id': nft_id,
-            'offer': offer
-        }
-
     def lock_tag(self, tag_type: str = None) -> bool:
         """Lock the tag to prevent further writes."""
         if not tag_type:
