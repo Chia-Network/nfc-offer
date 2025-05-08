@@ -36,8 +36,8 @@ Note - this process expects you have a csv file with your NFT ids and offer shor
 
 CSV format for nft_data.csv:
 ```csv
-nft_id,offer
-nft1vyet0xdu0cady88hd7mm0xaauql8547hjlk8gt2ujcn5zvm8ly7s7krg4j,b5bfc1c6b79852c1e417234ba78b8716b97451e399585641e2b694b8b1e4123c
+uid,version,nft_id,offer
+,,nft1vyet0xdu0cady88hd7mm0xaauql8547hjlk8gt2ujcn5zvm8ly7s7krg4j,b5bfc1c6b79852c1e417234ba78b8716b97451e399585641e2b694b8b1e4123c
 ```
 
 ### Scan NFC Tags to Generate NFC Data File
@@ -49,7 +49,7 @@ python main.py scan --nft-data-file/-d <nft_data_file> [--output/-o <output>] [-
 
 To use the example data run:
 ```bash
-python main.py scan -d ./examples/nfc_data.csv
+python main.py scan -d ./examples/nft_data.csv
 ```
 
 ### Batch Writing of NFC Tags

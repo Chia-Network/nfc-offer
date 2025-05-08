@@ -7,7 +7,6 @@ import argparse
 from src.nfc.exceptions import TagLockedException, WriteError
 from src.nfc.reader import NFCReader
 from src.nft.data import NFTData
-from src.nft.codec import encode_to_bytes, decode_from_bytes
 from src.utils.logging import setup_logging
 from src.utils.csv_handler import CSVHandler
 import os
@@ -65,25 +64,6 @@ def handle_nfc_operation(args):
         logging.info("Operation stopped by user")
     finally:
         reader.close()
-
-
-def handle_data_operation(args):
-    """Handle data encode/decode operations without NFC."""
-    try:
-        if args.command == 'encode':
-            nft_data = NFTData(
-                version=args.version,
-                nft_id=args.nft_id,
-                offer=args.offer
-            )
-            encode_to_bytes(nft_data)
-
-        elif args.command == 'decode':
-            binary_data = bytes.fromhex(args.hex)
-            decode_from_bytes(binary_data)
-
-    except Exception as e:
-        logging.error(f"Operation failed: {e}")
 
 
 def validate_nft_data(data: dict, legacy: bool = False, strict: bool = True) -> bool:
@@ -248,7 +228,7 @@ def handle_scan_uids(args):
             total_nfts = len(nft_data_rows)
             logging.info(f"Loaded {total_nfts} NFT records from data file")
         except Exception as e:
-            logging.error(f"Failed to load template file: {e}")
+            logging.error(f"Failed to load nft data file: {e}")
             return
 
     # Initialize or read existing CSV
@@ -493,8 +473,6 @@ def main():
             handle_nfc_operation(args)
         elif args.command == 'info':
             handle_info_command(args)
-        else:
-            handle_data_operation(args)
 
     except FileNotFoundError as e:
         logging.error(f"File not found: {e}")
