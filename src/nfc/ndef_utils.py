@@ -235,7 +235,7 @@ class NFDEFHandler:
             logging.debug(f"Full message data: {message.hex()}")
 
             # Extract NDEF message (skip TLV header)
-            ndef_message = message[2:length + 2]
+            ndef_message = message[2:msg_length + 2]
             logging.debug(f"NDEF message data: {ndef_message.hex()}")
 
             # Skip TLV header (2 bytes) and NDEF header (4 bytes)
