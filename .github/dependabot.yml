@@ -16,7 +16,7 @@ updates:
       - chia-pypi
       - chia-downloads
     insecure-external-code-execution: allow
-    directory: /
+    directories: ["/"]
     schedule:
       interval: "weekly"
       day: "tuesday"
