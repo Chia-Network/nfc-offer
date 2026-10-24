@@ -10,7 +10,6 @@ registries:
     type: python-index
     url: https://download.chia.net/simple/
 updates:
-
   - package-ecosystem: "pip"
     registries:
       - chia-pypi
@@ -29,9 +28,8 @@ updates:
       - python
       - "Changed"
     reviewers: ["emlowe"]
-
   - package-ecosystem: "github-actions"
-    directories: ["/", ".github/actions/*"]
+    directories: ["/", "/.github/actions/*"]
     schedule:
       interval: "weekly"
       day: "tuesday"
