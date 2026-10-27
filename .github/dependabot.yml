@@ -27,7 +27,6 @@ updates:
       - dependencies
       - python
       - "Changed"
-    reviewers: ["emlowe"]
   - package-ecosystem: "github-actions"
     directories: ["/", "/.github/actions/*"]
     schedule:
@@ -41,6 +40,6 @@ updates:
       - dependencies
       - github_actions
       - "Changed"
-    reviewers: ["cameroncooper", "emlowe"]
     exclude-paths:
       - ".github/workflows/dependency-artifact-review.yml"
+      - ".github/workflows/dependency-review.yml"
